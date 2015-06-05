@@ -1,5 +1,19 @@
 <?xml version="1.0"?>
 <tryton>
     <data>
+        <record model="ir.action.report" id="stock.report_shipment_out_picking_list">
+            <field name="active" eval="False"/>
+        </record> 	
+        <record model="ir.action.report" id="report_picking_list">
+            <field name="name">Picking List</field>
+            <field name="model">stock.shipment.out</field>
+            <field name="report_name">report.picking_list</field>
+            <field name="report">report_html_stock/reports/picking_list.html</field>
+        </record>
+        <record model="ir.action.keyword" id="report_picking_list_keyword">
+            <field name="keyword">form_print</field>
+            <field name="model">stock.shipment.out,-1</field>
+            <field name="action" ref="report_picking_list"/>
+        </record>
     </data>
 </tryton>
