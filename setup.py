@@ -82,7 +82,9 @@ minor_version = int(minor_version)
 
 requires = []
 
-MODULE2PREFIX = {}
+MODULE2PREFIX = {
+    'report_webkit': 'openlabs',
+}
 
 MODULE = "report_html_stock"
 PREFIX = "openlabs"

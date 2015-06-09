@@ -12,7 +12,7 @@ from trytond.transaction import Transaction
 from openlabs_report_webkit import ReportWebkit
 
 __all__ = [
-    'PickingList'
+    'PickingList', 'SupplierRestockingList', 'CustomerReturnRestockingList'
 ]
 __metaclass__ = PoolMeta
 
@@ -47,6 +47,19 @@ class ReportMixin(ReportWebkit):
             data, options=options
         )
 
+    @classmethod
+    def get_sorted_moves(cls, records):
+        """
+        Sorting the moves for each shipment
+        """
+        sorted_moves = {}
+        for shipment in records:
+            sorted_moves[shipment.id] = sorted(
+                shipment.inventory_moves,
+                key=lambda m: (m.from_location, m.to_location)
+            )
+        return sorted_moves
+
 
 class PickingList(ReportMixin):
     """
@@ -57,15 +70,42 @@ class PickingList(ReportMixin):
     @classmethod
     def parse(cls, report, records, data, localcontext):
 
-        sorted_moves = {}
-        for shipment in records:
-            sorted_moves[shipment.id] = sorted(
-                shipment.inventory_moves,
-                key=lambda m: (m.from_location, m.to_location)
-            )
+        sorted_moves = cls.get_sorted_moves(records)
 
         localcontext['moves'] = sorted_moves
 
         return super(PickingList, cls).parse(
+            report, records, data, localcontext
+        )
+
+
+class SupplierRestockingList(ReportMixin):
+    'Supplier Restocking List'
+    __name__ = 'report.supplier_restocking_list'
+
+    @classmethod
+    def parse(cls, report, records, data, localcontext):
+
+        sorted_moves = cls.get_sorted_moves(records)
+
+        localcontext['moves'] = sorted_moves
+
+        return super(SupplierRestockingList, cls).parse(
+            report, records, data, localcontext
+        )
+
+
+class CustomerReturnRestockingList(ReportMixin):
+    'Customer Return Restocking List'
+    __name__ = 'report.customer_return_restocking_list'
+
+    @classmethod
+    def parse(cls, report, records, data, localcontext):
+
+        sorted_moves = cls.get_sorted_moves(records)
+
+        localcontext['moves'] = sorted_moves
+
+        return super(CustomerReturnRestockingList, cls).parse(
             report, records, data, localcontext
         )

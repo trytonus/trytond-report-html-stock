@@ -1,7 +1,7 @@
 {% extends 'report_html_stock/reports/restocking_base.html' %}
 
 {% block title %}
-  Picking List
+  Restocking List
 {% endblock %}
 {% block header scoped %}
   <div class="col-xs-6">
@@ -13,15 +13,31 @@
   <div class="col-xs-6">
     <div class="row">
       <div class="col-xs-12">
-        <span class="h3">Picking List</span>
+        <span class="h3">Restocking List</span>
       </div>
     </div>
     <div class="row" style="padding-top:20px;">
       <div class="col-xs-5">
-        <strong>Shipment #</strong>
+        <strong>Code:</strong>
       </div>
       <div class="col-xs-7">
         {{ shipment.code }}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-5">
+        <strong>Refrence:</strong>
+      </div>
+      <div class="col-xs-7">
+        {{ shipment.origins or '' }}{{ ', ' if (shipment.origins and shipment.reference) else '' }}{{ shipment.reference or '' }}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-5">
+        <strong>Supplier:</strong>
+      </div>
+      <div class="col-xs-7">
+        {{ shipment.supplier.rec_name }}
       </div>
     </div>
     <div class="row">
@@ -34,10 +50,10 @@
     </div>
     <div class="row">
       <div class="col-xs-5">
-        <strong>Customer:</strong>
+        <strong>Warehouse:</strong>
       </div>
       <div class="col-xs-7">
-        {{ shipment.customer.rec_name }}
+        {{ shipment.warehouse.rec_name }}
       </div>
     </div>
   </div>

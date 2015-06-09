@@ -11,6 +11,7 @@ from decimal import Decimal
 
 import trytond.tests.test_tryton
 from trytond.tests.test_tryton import POOL, USER, CONTEXT
+from trytond.transaction import Transaction
 from trytond.pyson import Eval
 
 DIR = os.path.abspath(os.path.normpath(os.path.join(
@@ -53,6 +54,8 @@ class BaseTestCase(unittest.TestCase):
         self.Address = POOL.get('party.address')
         self.Move = POOL.get('stock.move')
         self.Product = POOL.get('product.product')
+        self.ShipmentIn = POOL.get('stock.shipment.in')
+        self.ShipmentOutReturn = POOL.get('stock.shipment.out.return')
 
     def _create_coa_minimal(self, company):
         """Create a minimal chart of accounts
@@ -129,13 +132,23 @@ class BaseTestCase(unittest.TestCase):
             'code': 'USD',
             'symbol': '$',
         }])
-        self.company_party, = self.Party.create([{
-            'name': 'openlabs',
-        }])
+
+        with Transaction().set_context(company=None):
+            self.company_party, = self.Party.create([{
+                'name': 'openlabs',
+            }])
+
         self.company, = self.Company.create([{
             'party': self.company_party,
             'currency': self.currency,
         }])
+        self.User.write([self.User(USER)], {
+            'company': self.company,
+            'main_company': self.company,
+        })
+
+        CONTEXT.update(self.User.get_preferences(context_only=True))
+
         self.country, = self.Country.create([{
             'name': 'United States of America',
             'code': 'US',
@@ -185,10 +198,3 @@ class BaseTestCase(unittest.TestCase):
             'template': self.product_template.id,
             'code': '123',
         }])
-
-        self.User.write([self.User(USER)], {
-            'company': self.company,
-            'main_company': self.company,
-        })
-
-        CONTEXT.update(self.User.get_preferences(context_only=True))
