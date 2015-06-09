@@ -30,6 +30,7 @@ class TestViewsDepends(unittest.TestCase):
         """
         trytond.tests.test_tryton.install_module('report_html_stock')
 
+    @unittest.skip("No views")
     def test0005views(self):
         '''
         Test views.
