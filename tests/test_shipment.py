@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-    test_sale.py
-    TestSale
-    :copyright: (c) 2014-2015 by Openlabs Technologies & Consulting (P) Limited
-    :license: BSD, see LICENSE for more details.
-"""
 import sys
 import os
 import unittest
