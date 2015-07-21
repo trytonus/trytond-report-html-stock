@@ -1,0 +1,36 @@
+{% extends 'report_html_stock/reports/base.html' %}
+
+{% block main %}
+    {% for shipment in records %}
+      <div class="container-fluid {% if not loop.first %}page-break{% endif %}">
+        <div class="row">
+          {% block header scoped %}
+          {% endblock %} 
+        </div>
+        <div class="row top20">
+          <div class="col-xs-12">
+            <table class="table">
+              <thead>
+                <th>#</th>
+                <th>From Location</th>
+                <th>To Location</th>
+                <th>Product</th>
+                <th class="text-right">Quantity</th>
+              </thead>
+              <tbody>
+                {% for move in moves[shipment.id] %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ move.from_location.rec_name }}</td>
+                  <td>{{ move.to_location.rec_name }}</td>
+                  <td>{{ move.product.code }} - {{ move.product.name }}</td>
+                  <td class="text-right">{{ formatLang(move.quantity, user.lang, digits=move.unit_digits) }} {% if move.uom.symbol != 'u' %}{{ move.uom.symbol }}{% endif %}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+{% endblock %}
