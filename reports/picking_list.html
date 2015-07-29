@@ -1,44 +1,87 @@
-{% extends 'report_html_stock/reports/restocking_base.html' %}
+{% extends 'report_html_stock/reports/base.html' %}
 
 {% block title %}
   Picking List
 {% endblock %}
-{% block header scoped %}
-  <div class="col-xs-6">
-    <div>
-      {% block header_logo %}
-      {% endblock %}
-    </div>
-  </div>
-  <div class="col-xs-6">
-    <div class="row">
-      <div class="col-xs-12">
-        <span class="h3">Picking List</span>
-      </div>
-    </div>
-    <div class="row" style="padding-top:20px;">
-      <div class="col-xs-5">
-        <strong>Shipment #</strong>
-      </div>
-      <div class="col-xs-7">
-        {{ shipment.code }}
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-xs-5">
-        <strong>Planned Date:</strong>
-      </div>
-      <div class="col-xs-7">
-        {{ shipment.planned_date and shipment.planned_date|dateformat }}
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-xs-5">
-        <strong>Customer:</strong>
-      </div>
-      <div class="col-xs-7">
-        {{ shipment.customer.rec_name }}
-      </div>
-    </div>
-  </div>
+
+{# Override the company header to iver address below it #}
+{% block company_header %}
+  {% set shipment = record %}
+  {{ super() }}
+  <br/><strong>Ship To</strong><br/>
+  {% for line in shipment.delivery_address.full_address.split('\n') %}
+    {{ line }}<br/>
+  {% endfor %}
+{% endblock company_header %}
+
+
+{# In the report header show information about the shipment #}
+{% block report_header %}
+{% set shipment = record %}
+<span class="h2 pull-right">Picking List</span>
+<table class="table no-border">
+  <tr>
+    <td align="right"><b>Shipment #</b></td>
+    <td>{{ shipment.code }}</td>
+  </tr>
+  <tr>
+    <td align="right"><b>Planned Date</b></td>
+    <td>{{ shipment.planned_date and shipment.planned_date|dateformat }}</td>
+  </tr>
+</table>
 {% endblock %}
+
+
+{% block report_body %}
+  {% set shipment = record %}
+
+  <!-- A header table that shows picking information -->
+  <table class="table">
+    <thead>
+      <th class="text-center">Reference</th>
+      <th class="text-center">Customer</th>
+      <th class="text-center">Warehouse</th>
+      <th class="text-center">Carrier</th>
+      <th class="text-center">Package Weight</th>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="text-center">{{ shipment.origins or '' }}{{ ', ' if (shipment.origins and shipment.reference) else '' }}{{ shipment.reference or '' }}</td>
+        <td class="text-center">{{ shipment.customer.rec_name }}</td>
+        <td class="text-center">{{ shipment.warehouse.rec_name }}</td>
+        <td class="text-center">{{ shipment.carrier and shipment.carrier.party.name or '-' }}</td>
+        <td class="text-center">
+          {% if shipment.package_weight %}
+            {{ formatLang(shipment.package_weight, shipment.customer.lang, digits=2) }} {{ shipment.weight_uom.symbol }}
+          {% else %}
+            {{ '-' }}
+          {% endif %}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  {% block moves scoped %}
+  <table class="table">
+    <tr>
+      <th>#</th>
+      <th class="text-right">Quantity</th>
+      <th class="text-center">Product</th>
+      <th>From Location</th>
+      <th>To Location</th>
+      {% if shipment.state == 'waiting' %}<th>Status</th>{% endif %}
+    </tr>
+    {% for move in sort_inventory_moves(shipment, sort_key) %}
+      <tr>
+        <td>{{ loop.index }}</i></td>
+        <td class="text-right">{{ formatLang(move.quantity, shipment.customer.lang, digits=move.unit_digits) }} {% if move.uom.symbol != 'u' %}{{ move.uom.symbol }}{% endif %}</td>
+        <td class="text-center">{{ move.product.code }} - {{ move.product.name }}</td>
+        <td>{{ move.from_location.rec_name }}</td>
+        <td>{{ move.to_location.rec_name }}</td>
+        {% if shipment.state == 'waiting' %}<td>{{ move.state }}</td>{% endif %}
+      </tr>
+    {% endfor %}
+  </table>
+  {% endblock moves %}
+
+{% endblock report_body %}
