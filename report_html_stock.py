@@ -60,13 +60,22 @@ class PickingList(ReportMixin):
     """
     __name__ = 'report.picking_list'
 
+    @staticmethod
+    def sort_inventory_moves(shipment, sort_key=None):
+        """
+        A sorter that can be overwritten by downstream modules
+        """
+        return sorted(shipment.inventory_moves, key=sort_key)
+
     @classmethod
     def parse(cls, report, records, data, localcontext):
-
-        sorted_moves = cls.get_sorted_moves(records)
-
-        localcontext['moves'] = sorted_moves
-
+        sort_fn = lambda shipment, sort_key=None: sorted(
+            shipment.inventory_moves, key=sort_key
+        )
+        localcontext['sort_inventory_moves'] = sort_fn
+        localcontext['sort_key'] = lambda move: (
+            move.from_location.rec_name, move.product.name
+        )
         return super(PickingList, cls).parse(
             report, records, data, localcontext
         )
