@@ -41,6 +41,7 @@
     {% endblock custom_style %}
   </head>
   <body>
+    {% block body %}
     {% for record in records %}
       {# loop will not be available in the context of scoped block #}
       {% set first = loop.first %}
@@ -67,5 +68,6 @@
       </div>
       {% endblock main %}
     {% endfor %}
+    {% endblock body %}
   </body>
 </html>

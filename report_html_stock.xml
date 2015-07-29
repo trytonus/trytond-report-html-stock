@@ -15,6 +15,17 @@
             <field name="model">stock.shipment.out,-1</field>
             <field name="action" ref="report_picking_list"/>
         </record>
+        <record model="ir.action.report" id="report_consolidated_picking_list">
+            <field name="name">Consolidated Picking List</field>
+            <field name="model">stock.shipment.out</field>
+            <field name="report_name">report.consolidated_picking_list</field>
+            <field name="report">report_html_stock/reports/consolidated_picking_list.html</field>
+        </record>
+        <record model="ir.action.keyword" id="report_consolidated_picking_list_keyword">
+            <field name="keyword">form_print</field>
+            <field name="model">stock.shipment.out,-1</field>
+            <field name="action" ref="report_consolidated_picking_list"/>
+        </record>
         <record model="ir.action.report" id="stock.report_shipment_in_restocking_list">
             <field name="active" eval="False"/>
         </record>
