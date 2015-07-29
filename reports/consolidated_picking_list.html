@@ -1,0 +1,76 @@
+{% extends 'report_html_stock/reports/base.html' %}
+
+{% block title %}
+  Consolidated Picking List
+{% endblock %}
+
+
+{% block body %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-xs-6">
+      {% block company_header scoped %}
+      {% include header %}
+      {% endblock company_header %}
+    </div>
+    <div class="col-xs-6">
+      {% block report_header scoped %}
+      {% set shipment = record %}
+      <span class="h3 pull-right">Consolidated Picking List</span>
+      <table class="table no-border">
+        <tr>
+          <td align="right"><b>Shipments</b></td>
+          <td>{{ records|length }}</td>
+        </tr>
+      </table>
+      {% endblock report_header %}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-xs-12">
+    {% block report_body scoped %}
+      {% for key, moves, quantity in grouped_moves %}
+      {% set moves = moves|list %}
+      <table class="table table-bordered">
+        <thead>
+          <tr class="warning">
+            <th colspan="4">
+              &#9744; <b>{{ quantity }}</b> x 
+              {{ get_product_repr_from(key) }}
+            </th>
+            <th colspan="3">
+              <span class="text-muted">Location:</span> 
+              {{ get_location_repr_from(key) }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>#</td>
+            <td>Quantity</td>
+            <td>Shipment</td>
+            <td>Planned Date</td>
+            <td>Order #</td>
+            <td>Customer</td>
+            <td>State</td>
+          </tr>
+          {% for move in moves %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td class="text-right">{{ formatLang(move.quantity, move.shipment.customer.lang, digits=move.unit_digits) }} {% if move.uom.symbol != 'u' %}{{ move.uom.symbol }}{% endif %}</td>
+            <td class="text-right">{{ move.shipment.code }}</td>
+            <td>{{ move.shipment.planned_date and move.shipment.planned_date|dateformat or '-' }}</td>
+            <td>{{ move.origin and move.origin.reference or '-' }}</td>
+            <td>{{ move.shipment.customer.rec_name }}</td>
+            <td>{{ move.state }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+       </table>
+
+      {% endfor %}
+    {% endblock report_body %}
+    </div>
+  </div>
+</div>
+{% endblock body %}
