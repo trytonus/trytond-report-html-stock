@@ -60,7 +60,7 @@
             <td class="text-right">{{ formatLang(move.quantity, move.shipment.customer.lang, digits=move.unit_digits) }} {% if move.uom.symbol != 'u' %}{{ move.uom.symbol }}{% endif %}</td>
             <td class="text-right">{{ move.shipment.code }}</td>
             <td>{{ move.shipment.planned_date and move.shipment.planned_date|dateformat or '-' }}</td>
-            <td>{{ move.origin and move.origin.reference or '-' }}</td>
+            <td>{{ move.sale_order and move.sale_order.reference or '-' }}</td>
             <td>{{ move.shipment.customer.rec_name }}</td>
             <td>{{ move.state }}</td>
           </tr>
