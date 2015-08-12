@@ -55,5 +55,22 @@
             <field name="model">stock.shipment.out.return,-1</field>
             <field name="action" ref="report_shipment_out_return_restocking_list"/>
         </record>
+
+        <!-- Delivery Note -->
+        <record model="ir.action.report" id="stock.report_shipment_out_delivery_note">
+          <field name="active" eval="False"/>
+        </record>
+        <record model="ir.action.report" id="report_shipment_out_delivery_note_html">
+            <field name="name">Delivery Note</field>
+            <field name="model">stock.shipment.out</field>
+            <field name="report_name">report.delivery_note</field>
+            <field name="report">report_html_stock/reports/delivery_note.html</field>
+            <field name="extension">pdf</field>
+        </record>
+        <record model="ir.action.keyword" id="report_shipment_out_delivery_note_keyword">
+            <field name="keyword">form_print</field>
+            <field name="model">stock.shipment.out,-1</field>
+            <field name="action" ref="report_shipment_out_delivery_note_html"/>
+        </record>
     </data>
 </tryton>

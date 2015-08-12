@@ -2,7 +2,7 @@
 from trytond.pool import Pool
 from stock import ShipmentOut, Move
 from report_html_stock import PickingList, SupplierRestockingList, \
-    CustomerReturnRestockingList, ConsolidatedPickingList
+    CustomerReturnRestockingList, ConsolidatedPickingList, DeliveryNote
 
 
 def register():
@@ -16,5 +16,6 @@ def register():
         SupplierRestockingList,
         CustomerReturnRestockingList,
         ConsolidatedPickingList,
+        DeliveryNote,
         module='report_html_stock', type_='report'
     )
