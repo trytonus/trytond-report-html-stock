@@ -1,0 +1,90 @@
+{% extends 'report_html_stock/reports/base.html' %}
+
+{% block title %}
+  Shipment {{ records|join('# ', 'reference') }}
+{% endblock %}
+
+{% block report_header scoped %}
+  {% set shipment = record %}
+  <span class="h3 pull-right">Delivery Note</span>
+  <table class="table no-border">
+    <tr>
+      <td align="right"><b>Shipment #</b></td>
+      <td>{{ shipment.code }}</td>
+    </tr>
+    <tr>
+      <td align="right"><b>Date</b></td>
+      <td>{{ shipment.effective_date or datetime.datetime.today()|dateformat }}</td>
+    </tr>
+  </table>
+{% endblock report_header %}
+
+{% block report_body scoped %}
+    {% set shipment = record %}
+    <table class="table no-border">
+      <tr>
+        <td align="right" class="col-xs-1"><b>Ship To</b></td>
+        <td class="col-xs-3">
+          <address>
+            {% for line in shipment.delivery_address.full_address.split('\n') %}
+              {{ line }}<br/>
+            {% endfor %}
+          </address>
+        </td>
+        <td class="col-xs-8"></td>
+      </tr>
+    </table>
+    <table class="table">
+      <thead>
+        <th class="text-center">Reference</th>
+        <th class="text-center">Customer Code</th>
+        <th class="text-center">Carrier</th>
+        <th class="text-center">Tracking Number</th>
+        <th class="text-center">Package Weight</th>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="text-center">{{ shipment.origins or '' }}{{ ', ' if (shipment.origins and shipment.reference) else '' }}{{ shipment.reference or '' }}</td>
+          <td class="text-center">{{ shipment.customer.code }}</td>
+          <td class="text-center">{{ shipment.carrier and shipment.carrier.party.name or '-' }}</td>
+          <td class="text-center">{{ shipment.tracking_number or '-' }}</td>
+          <td class="text-center">
+            {% if shipment.package_weight %}
+              {{ formatLang(shipment.package_weight, shipment.customer.lang, digits=2) }} {{ shipment.weight_uom.symbol }}
+            {% else %}
+              {{ '-' }}
+            {% endif %}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="table">
+      <tbody>
+        <tr>
+          <th>#</th>
+          <th class="text-center">Item</th>
+          <th>Description</th>
+          <th class="text-right">Quantity</th>
+        </tr>
+        {% for move in shipment.outgoing_moves|selectattr("quantity") %}
+        <tr>
+          <td>{{ loop.index }}</i></td>
+          <td class="text-center">
+              {% if move.product %}
+                {{ move.product.code }}
+              {% endif %}
+          </td>
+          <td>
+              {% if move.product %}
+                {{ move.product.name }}
+              {% endif %}
+          </td>
+          </td>
+          <td class="text-right">
+            {{ formatLang(move.quantity, shipment.customer.lang, digits=move.unit_digits) }} {% if move.uom.symbol != 'u' %}{{ move.uom.symbol }}{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+{% endblock report_body%}

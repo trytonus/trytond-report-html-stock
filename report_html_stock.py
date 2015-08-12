@@ -172,3 +172,8 @@ class CustomerReturnRestockingList(ReportMixin):
         return super(CustomerReturnRestockingList, cls).parse(
             report, records, data, localcontext
         )
+
+
+class DeliveryNote(ReportMixin):
+    "Delivery Note"
+    __name__ = 'report.delivery_note'
