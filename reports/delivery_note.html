@@ -29,6 +29,12 @@
             {% for line in shipment.delivery_address.full_address.split('\n') %}
               {{ line }}<br/>
             {% endfor %}
+            {% if shipment.customer.phone %}
+            Phone: {{ shipment.customer.phone }} <br/>
+            {% endif %}
+            {% if shipment.customer.email %}
+            Email: {{ shipment.customer.email }} <br/>
+            {% endif %}
           </address>
         </td>
         <td class="col-xs-8"></td>
