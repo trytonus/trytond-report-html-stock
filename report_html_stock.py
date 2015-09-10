@@ -124,15 +124,14 @@ class ConsolidatedPickingList(ReportMixin):
                 # and then group it
                 list(sorted(
                     # Chain all inventory moves from all shipments
-                    chain(*imap(lambda s:s.inventory_moves, records)),
+                    chain(*imap(lambda s: s.inventory_moves, records)),
                     key=cls.group_key
-                )), cls.group_key
-            ):
+                )), cls.group_key):
             moves = list(grouper)
             # TODO: Sum totals everything, the UOM to base UOM conversion
             # is not done
             localcontext['grouped_moves'].append(
-                (key, moves, sum(map(lambda m:m.quantity, moves)))
+                (key, moves, sum(map(lambda m: m.quantity, moves)))
             )
 
         localcontext['get_product_repr_from'] = cls.get_product_repr_from
