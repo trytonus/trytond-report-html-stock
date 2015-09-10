@@ -42,7 +42,7 @@
       <th class="text-center">Customer</th>
       <th class="text-center">Warehouse</th>
       <th class="text-center">Carrier</th>
-      <th class="text-center">Package Weight</th>
+      <th class="text-center">Total Weight</th>
     </thead>
     <tbody>
       <tr>
@@ -51,8 +51,8 @@
         <td class="text-center">{{ shipment.warehouse.rec_name }}</td>
         <td class="text-center">{{ shipment.carrier and shipment.carrier.party.name or '-' }}</td>
         <td class="text-center">
-          {% if shipment.package_weight %}
-            {{ formatLang(shipment.package_weight, shipment.customer.lang, digits=2) }} {{ shipment.weight_uom.symbol }}
+          {% if shipment.weight %}
+            {{ formatLang(shipment.weight, shipment.customer.lang, digits=2) }} {{ shipment.weight_uom.symbol }}
           {% else %}
             {{ '-' }}
           {% endif %}
