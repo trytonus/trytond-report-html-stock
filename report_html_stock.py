@@ -72,10 +72,7 @@ class PickingList(ReportMixin):
 
     @classmethod
     def parse(cls, report, records, data, localcontext):
-        sort_fn = lambda shipment, sort_key=None: sorted(
-            shipment.inventory_moves, key=sort_key
-        )
-        localcontext['sort_inventory_moves'] = sort_fn
+        localcontext['sort_inventory_moves'] = cls.sort_inventory_moves
         localcontext['sort_key'] = lambda move: (
             move.from_location.rec_name, move.product.name
         )
