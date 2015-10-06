@@ -39,6 +39,18 @@
       }
     </style>
     {% endblock custom_style %}
+    {% block scripts %}
+    <script type="text/javascript" src="{{ 'report_html_stock/reports/js/jquery-1.3.2.min.js'|modulepath }}"></script>
+    <script type="text/javascript" src="{{ 'report_html_stock/reports/js/jquery-barcode.min.js'|modulepath }}"></script>
+    <script type="text/javascript">
+      $(document).ready(function(){
+        $(".barcode").each(function() {
+          var code = $(this).text();
+          $(this).barcode(code, "code128", {barHeight:30})
+        });
+      });
+    </script>
+    {% endblock %}
   </head>
   <body>
     {% block body %}
