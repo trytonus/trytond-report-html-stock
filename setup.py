@@ -127,6 +127,7 @@ setup(
         + ['view/*.xml', 'reports/*.html']
         + ['web/static/images/passbook/*.png', 'reports/css/bootstrap/css/*']
         + ['reports/css/bootstrap/fonts/*', 'reports/css/font-awesome/css/*']
+        + ['reports/js/*.js']
     },
     classifiers=[
         'Development Status :: 4 - Beta',
