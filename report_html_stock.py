@@ -190,7 +190,7 @@ class ProductLedgerStartView(ModelView):
         'stock.location', None, 'Warehouses',
         domain=[
             ('type', '=', 'warehouse')
-        ]
+        ], add_remove=[('type', '=', 'warehouse')]
     )
     start_date = fields.Date('Start Date', required=True)
     end_date = fields.Date('End Date', required=True)
@@ -312,7 +312,7 @@ class ProductLedger(Wizard):
     def do_view(self, action):
         data = {
             'products': [self.start.product.id],
-            'warehouses': ', '.join([w.name for w in self.start.warehouses]),
+            'warehouses': map(int, self.start.warehouses),
             'start_date': self.start.start_date,
             'end_date': self.start.end_date,
         }
