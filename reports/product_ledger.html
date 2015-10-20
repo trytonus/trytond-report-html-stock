@@ -3,6 +3,7 @@
 {% block title %}Product Ledger{% endblock %}
 
 {% block report_header scoped %}
+{% for record in records %}
 {% set product = record['product'] %}
 <div class="clearfix">
   <h3 class="pull-right">Product Ledger</h3>
@@ -21,13 +22,15 @@
 
     <dt>Warehouses</dt>
     <dd>
-      {{ [w.name for w in warehouses|join(', ')] }}
+      {{ warehouses }}
     </dd>
   </dl>
 </div>
+{% endfor %}
 {% endblock report_header %}
 
 {% block report_body scoped %}
+{% for record in records %}
   {% set product = record['product'] %}
   <table class="table table-bordered">
     <thead>
@@ -191,4 +194,5 @@
   {% endif %}
   <!-- END:Customers -->
 
+{% endfor %}
 {% endblock report_body %}

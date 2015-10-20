@@ -90,7 +90,7 @@
         </record>
         <record model="ir.action.report" id="report_product_ledger">
             <field name="name">Product Ledger</field>
-            <field name="model">Product Ledger</field>
+            <field name="model">product.product</field>
             <field name="report_name">report.product_ledger</field>
             <field name="report">report_html_stock/reports/product_ledger.html</field>
         </record>
