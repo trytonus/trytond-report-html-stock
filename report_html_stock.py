@@ -271,19 +271,20 @@ class ProductLedgerReport(ReportMixin):
     def parse(cls, report, objects, data, localcontext):
         Product = Pool().get('product.product')
 
-        data['records'] = []
-        data['summary'] = {}
+        localcontext.update(data)
+        localcontext['records'] = []
+        localcontext['summary'] = {}
         for product_id in data['products']:
             product = Product(product_id)
             record = {
                 'product': product,
-                'purchases': cls.get_purchases(data),
-                'productions': cls.get_productions(data),
-                'customers': cls.get_customers(data),
-                'lost_and_founds': cls.get_lost_and_founds(data),
+                'purchases': cls.get_purchases(product.id, data),
+                'productions': cls.get_productions(product.id, data),
+                'customers': cls.get_customers(product.id, data),
+                'lost_and_founds': cls.get_lost_and_founds(product.id, data),
             }
-            data['records'].append(record)
-            data['summary'][product] = cls.get_summary(record, data)
+            localcontext['records'].append(record)
+            localcontext['summary'][product] = cls.get_summary(record, data)
         return super(ProductLedgerReport, cls).parse(
             report, objects, data, localcontext
         )
@@ -311,7 +312,7 @@ class ProductLedger(Wizard):
     def do_view(self, action):
         data = {
             'products': [self.start.product.id],
-            'warehouses': map(int, self.start.warehouses),
+            'warehouses': ', '.join([w.name for w in self.start.warehouses]),
             'start_date': self.start.start_date,
             'end_date': self.start.end_date,
         }
