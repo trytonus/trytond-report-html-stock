@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<form string="Product Ledger">
+    <label name="product"/>
+    <field name="product" colspan="3"/>
+    <label name="start_date"/>
+    <field name="start_date"/>
+    <label name="end_date"/>
+    <field name="end_date"/>
+    <field name="warehouses" colspan="4"/>
+</form>

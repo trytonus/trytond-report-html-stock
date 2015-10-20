@@ -72,5 +72,27 @@
             <field name="model">stock.shipment.out,-1</field>
             <field name="action" ref="report_shipment_out_delivery_note_html"/>
         </record>
+
+        <!-- Product Ledger -->
+        <record model="ir.action.wizard" id="wizard_product_ledger">
+            <field name="name">Product Ledger</field>
+            <field name="wiz_name">product.product.ledger.wizard</field>
+        </record>
+        <record model="ir.action.keyword" id="act_wizard_product_ledger">
+            <field name="keyword">form_action</field>
+            <field name="model">product.product,-1</field>
+            <field name="action" ref="wizard_product_ledger"/>
+        </record>
+        <record model="ir.ui.view" id="wizard_product_ledger_start_form">
+            <field name="model">product.product.ledger.start</field>
+            <field name="type">form</field>
+            <field name="name">product_ledger_view_form</field>
+        </record>
+        <record model="ir.action.report" id="report_product_ledger">
+            <field name="name">Product Ledger</field>
+            <field name="model">Product Ledger</field>
+            <field name="report_name">report.product_ledger</field>
+            <field name="report">report_html_stock/reports/product_ledger.html</field>
+        </record>
     </data>
 </tryton>

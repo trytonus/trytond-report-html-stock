@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
 from itertools import groupby, imap, chain
+from dateutil.relativedelta import relativedelta
 
 from trytond.pool import Pool, PoolMeta
+from trytond.model import fields, ModelView
+from trytond.wizard import Wizard, Button, StateAction, StateView
 from trytond.transaction import Transaction
 
 from openlabs_report_webkit import ReportWebkit
 
 __all__ = [
     'PickingList', 'SupplierRestockingList', 'CustomerReturnRestockingList',
-    'ConsolidatedPickingList'
+    'ConsolidatedPickingList', 'ProductLedgerStartView', 'ProductLedgerReport',
+    'ProductLedger'
 ]
 __metaclass__ = PoolMeta
 
@@ -173,3 +177,142 @@ class CustomerReturnRestockingList(ReportMixin):
 class DeliveryNote(ReportMixin):
     "Delivery Note"
     __name__ = 'report.delivery_note'
+
+
+class ProductLedgerStartView(ModelView):
+    'Product Ledger Start'
+    __name__ = 'product.product.ledger.start'
+
+    product = fields.Many2One(
+        'product.product', 'Product', required=True
+    )
+    warehouses = fields.One2Many(
+        'stock.location', None, 'Warehouses',
+        domain=[
+            ('type', '=', 'warehouse')
+        ]
+    )
+    start_date = fields.Date('Start Date', required=True)
+    end_date = fields.Date('End Date', required=True)
+
+    @staticmethod
+    def default_start_date():
+        Date = Pool().get('ir.date')
+        return Date.today() - relativedelta(months=1)
+
+    @staticmethod
+    def default_end_date():
+        Date = Pool().get('ir.date')
+        return Date.today()
+
+
+class ProductLedgerReport(ReportMixin):
+    'Product Ledger Report'
+    __name__ = 'report.product_ledger'
+
+    @classmethod
+    def get_purchases(cls, product_id, data):
+        Move = Pool().get('stock.move')
+
+        return Move.search([
+            ('effective_date', '>=', data['start_date']),
+            ('effective_date', '<=', data['end_date']),
+            ('product', '=', product_id),
+            ('state', '=', 'done'),
+            ('from_location.type', '=', 'supplier'),
+        ], order=[('effective_date', 'asc')])
+
+    @classmethod
+    def get_productions(cls, product_id, data):
+        Move = Pool().get('stock.move')
+
+        return Move.search([
+            ('effective_date', '>=', data['start_date']),
+            ('effective_date', '<=', data['end_date']),
+            ('product', '=', product_id),
+            ('state', '=', 'done'),
+            ('from_location.type', '=', 'production'),
+        ], order=[('effective_date', 'asc')])
+
+    @classmethod
+    def get_customers(cls, product_id, data):
+        Move = Pool().get('stock.move')
+
+        return Move.search([
+            ('effective_date', '>=', data['start_date']),
+            ('effective_date', '<=', data['end_date']),
+            ('product', '=', product_id),
+            ('state', '=', 'done'),
+            ('from_location.type', '=', 'customer'),
+        ], order=[('effective_date', 'asc')])
+
+    @classmethod
+    def get_lost_and_founds(cls, product_id, data):
+        Move = Pool().get('stock.move')
+
+        return Move.search([
+            ('effective_date', '>=', data['start_date']),
+            ('effective_date', '<=', data['end_date']),
+            ('product', '=', product_id),
+            ('state', '=', 'done'),
+            ('from_location.type', '=', 'lost_found'),
+        ], order=[('effective_date', 'asc')])
+
+    @classmethod
+    def get_summary(cls, record, data):
+        rv = {}
+        with Transaction().set_context(
+                locations=data['warehouses'],
+                stock_date_end=data['start_date'] - relativedelta(days=1)):
+            pass
+        return rv
+
+    @classmethod
+    def parse(cls, report, objects, data, localcontext):
+        Product = Pool().get('product.product')
+
+        data['records'] = []
+        data['summary'] = {}
+        for product_id in data['products']:
+            product = Product(product_id)
+            record = {
+                'product': product,
+                'purchases': cls.get_purchases(data),
+                'productions': cls.get_productions(data),
+                'customers': cls.get_customers(data),
+                'lost_and_founds': cls.get_lost_and_founds(data),
+            }
+            data['records'].append(record)
+            data['summary'][product] = cls.get_summary(record, data)
+        return super(ProductLedgerReport, cls).parse(
+            report, objects, data, localcontext
+        )
+
+
+class ProductLedger(Wizard):
+    'Wizard for generating product ledger'
+    __name__ = 'product.product.ledger.wizard'
+
+    start = StateView(
+        'product.product.ledger.start',
+        'report_html_stock.wizard_product_ledger_start_form',
+        [
+            Button('Cancel', 'end', 'tryton-cancel'),
+            Button('View', 'view', 'tryton-go-next', default=True),
+        ]
+    )
+    view = StateAction('report_html_stock.report_product_ledger')
+
+    def default_start(self, fields):
+        return {
+            'product': Transaction().context.get('active_id'),
+        }
+
+    def do_view(self, action):
+        data = {
+            'products': [self.start.product.id],
+            'warehouses': map(int, self.start.warehouses),
+            'start_date': self.start.start_date,
+            'end_date': self.start.end_date,
+        }
+        return action, data
