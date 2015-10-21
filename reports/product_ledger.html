@@ -2,8 +2,7 @@
 
 {% block title %}Product Ledger{% endblock %}
 
-{% block report_header scoped %}
-{% for record in records %}
+{% block report_header %}
 {% set product = record['product'] %}
 <div class="clearfix">
   <h3 class="pull-right">Product Ledger</h3>
@@ -15,22 +14,22 @@
 
     <dt>Date</dt>
     <dd>
-      {{ start_date|dateformat('short') }}
+      {{ data['start_date']|dateformat('short') }}
       -
-      {{ end_date|dateformat('short') }}
+      {{ data['end_date']|dateformat('short') }}
     </dd>
 
     <dt>Warehouses</dt>
     <dd>
-      {{ warehouses }}
+      {% for warehouse in warehouses %}
+        {{ warehouse.name }}
+      {% endfor %}
     </dd>
   </dl>
 </div>
-{% endfor %}
 {% endblock report_header %}
 
-{% block report_body scoped %}
-{% for record in records %}
+{% block report_body %}
   {% set product = record['product'] %}
   <table class="table table-bordered">
     <thead>
@@ -194,5 +193,4 @@
   {% endif %}
   <!-- END:Customers -->
 
-{% endfor %}
 {% endblock report_body %}

@@ -270,10 +270,10 @@ class ProductLedgerReport(ReportMixin):
     @classmethod
     def parse(cls, report, objects, data, localcontext):
         Product = Pool().get('product.product')
+        Locations = Pool().get('stock.location')
 
-        localcontext.update(data)
-        localcontext['records'] = []
-        localcontext['summary'] = {}
+        records = []
+        summary = {}
         for product_id in data['products']:
             product = Product(product_id)
             record = {
@@ -283,10 +283,12 @@ class ProductLedgerReport(ReportMixin):
                 'customers': cls.get_customers(product.id, data),
                 'lost_and_founds': cls.get_lost_and_founds(product.id, data),
             }
-            localcontext['records'].append(record)
-            localcontext['summary'][product] = cls.get_summary(record, data)
+            records.append(record)
+            summary[product] = cls.get_summary(record, data)
+        localcontext['summary'] = summary
+        localcontext['warehouses'] = Locations.browse(data['warehouses'])
         return super(ProductLedgerReport, cls).parse(
-            report, objects, data, localcontext
+            report, records, data, localcontext
         )
 
 
