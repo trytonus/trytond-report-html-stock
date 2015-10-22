@@ -183,8 +183,8 @@ class ProductLedgerStartView(ModelView):
     'Product Ledger Start'
     __name__ = 'product.product.ledger.start'
 
-    product = fields.Many2One(
-        'product.product', 'Product', required=True
+    products = fields.One2Many(
+        'product.product', None, 'Products', required=True
     )
     warehouses = fields.One2Many(
         'stock.location', None, 'Warehouses',
@@ -308,12 +308,12 @@ class ProductLedger(Wizard):
 
     def default_start(self, fields):
         return {
-            'product': Transaction().context.get('active_id'),
+            'products': Transaction().context.get('active_ids'),
         }
 
     def do_view(self, action):
         data = {
-            'products': [self.start.product.id],
+            'products': map(int, self.start.products),
             'warehouses': map(int, self.start.warehouses),
             'start_date': self.start.start_date,
             'end_date': self.start.end_date,
