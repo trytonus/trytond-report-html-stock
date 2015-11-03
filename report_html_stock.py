@@ -259,12 +259,46 @@ class ProductLedgerReport(ReportMixin):
         ], order=[('effective_date', 'asc')])
 
     @classmethod
+    def get_consumed(cls, product_id, data):
+        Move = Pool().get('stock.move')
+
+        return Move.search([
+            ('effective_date', '>=', data['start_date']),
+            ('effective_date', '<=', data['end_date']),
+            ('product', '=', product_id),
+            ('state', '=', 'done'),
+            ('to_location.type', '=', 'production'),
+        ], order=[('effective_date', 'asc')])
+
+    @classmethod
+    def _get_total_quantity(cls, moves):
+        """
+        Returns sum of quantity for list of stock moves
+        """
+        sum = 0.0
+        for move in moves:
+            sum += move.internal_quantity
+        return sum
+
+    @classmethod
     def get_summary(cls, record, data):
         rv = {}
         with Transaction().set_context(
-                locations=data['warehouses'],
-                stock_date_end=data['start_date'] - relativedelta(days=1)):
-            pass
+            locations=data['warehouses'],
+            stock_date_end=data['start_date'] - relativedelta(days=1)
+        ):
+            rv['opening_stock'] = record['product'].quantity
+
+        with Transaction().set_context(
+            locations=data['warehouses'], stock_date_end=data['end_date']
+        ):
+            rv['closing_stock'] = record['product'].quantity
+
+        rv['purchased'] = cls._get_total_quantity(record['purchases'])
+        rv['produced'] = cls._get_total_quantity(record['productions'])
+        rv['customer'] = cls._get_total_quantity(record['customers'])
+        rv['lost'] = cls._get_total_quantity(record['lost_and_founds'])
+        rv['consumed'] = cls._get_total_quantity(record['consumed'])
         return rv
 
     @classmethod
@@ -282,9 +316,11 @@ class ProductLedgerReport(ReportMixin):
                 'productions': cls.get_productions(product.id, data),
                 'customers': cls.get_customers(product.id, data),
                 'lost_and_founds': cls.get_lost_and_founds(product.id, data),
+                'consumed': cls.get_consumed(product.id, data)
             }
             records.append(record)
             summary[product] = cls.get_summary(record, data)
+
         localcontext['summary'] = summary
         localcontext['warehouses'] = Locations.browse(data['warehouses'])
         return super(ProductLedgerReport, cls).parse(
