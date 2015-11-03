@@ -2,14 +2,20 @@
 from trytond.pool import Pool
 from stock import ShipmentOut, Move
 from report_html_stock import PickingList, SupplierRestockingList, \
-    CustomerReturnRestockingList, ConsolidatedPickingList, DeliveryNote
+    CustomerReturnRestockingList, ConsolidatedPickingList, DeliveryNote, \
+    ProductLedger, ProductLedgerStartView, ProductLedgerReport
 
 
 def register():
     Pool.register(
         ShipmentOut,
         Move,
+        ProductLedgerStartView,
         module='report_html_stock', type_='model'
+    )
+    Pool.register(
+        ProductLedger,
+        module='report_html_stock', type_='wizard'
     )
     Pool.register(
         PickingList,
@@ -17,5 +23,6 @@ def register():
         CustomerReturnRestockingList,
         ConsolidatedPickingList,
         DeliveryNote,
+        ProductLedgerReport,
         module='report_html_stock', type_='report'
     )
