@@ -303,6 +303,8 @@ class ProductLedgerReport(ReportMixin):
 
     @classmethod
     def parse(cls, report, objects, data, localcontext):
+
+        print report, objects, data, localcontext
         Product = Pool().get('product.product')
         Locations = Pool().get('stock.location')
 

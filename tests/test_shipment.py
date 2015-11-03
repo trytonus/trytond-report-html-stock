@@ -7,6 +7,8 @@ import trytond.tests.test_tryton
 from trytond.tests.test_tryton import POOL, DB_NAME, USER, CONTEXT
 from trytond.transaction import Transaction
 from trytond.pool import Pool
+from trytond.wizard import StateAction
+from trytond import backend
 
 from test_base import BaseTestCase
 
@@ -190,6 +192,61 @@ class TestShipment(BaseTestCase):
                 self.assertEqual(val[0], 'pdf')
                 # Assert report name
                 self.assertEqual(val[3], 'Customer Restocking List')
+
+    def test_0132_test_product_ledger_report(self):
+        """
+        Test product ledger report
+        """
+        LedgerReport = POOL.get('report.product_ledger', type="report")
+        Date = POOL.get('ir.date')
+        LedgerWizard = POOL.get(
+            'product.product.ledger.wizard', type="wizard"
+        )
+        Location = POOL.get('stock.location')
+
+        with Transaction().start(DB_NAME, USER, context=CONTEXT):
+            self.setup_defaults()
+
+            warehouse, = Location.search([('type', '=', 'warehouse')])
+
+            with Transaction().set_context(active_ids=[self.product.id]):
+
+                session_id, start_state, end_state = LedgerWizard.create()
+
+                start_data = {
+                    'products': [self.product.id],
+                    'warehouses': [warehouse.id],
+                    'start_date': Date.today(),
+                    'end_date': Date.today(),
+                }
+                wizard_data = {
+                    start_state: start_data,
+                }
+
+                result = LedgerWizard.execute(
+                    session_id, wizard_data, 'view'
+                )
+                self.assertEqual(
+                    result['actions'][0][1]['products'], [self.product.id]
+                )
+
+                self.assertEqual(
+                    result['actions'][0][1]['warehouses'], [warehouse.id]
+                )
+                self.assertEqual(
+                    result['actions'][0][1]['start_date'], Date.today()
+                )
+                self.assertEqual(
+                    result['actions'][0][1]['end_date'], Date.today()
+                )
+
+                val = LedgerReport.execute([], result['actions'][0][1])
+
+                self.assert_(val)
+                # Assert report type
+                self.assertEqual(val[0], 'html')
+                # Assert report name
+                self.assertEqual(val[3], 'Product Ledger')
 
 
 def suite():
