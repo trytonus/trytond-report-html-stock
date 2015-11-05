@@ -1,0 +1,196 @@
+{% extends 'report_html_stock/reports/base.html' %}
+
+{% block title %}Product Ledger{% endblock %}
+
+{% block report_header %}
+{% set product = record['product'] %}
+<div class="clearfix">
+  <h3 class="pull-right">Product Ledger</h3>
+</div>
+<div class="clearfix top20">
+  <dl class="dl-horizontal pull-right">
+    <dt>Product</dt>
+    <dd>{{ product.rec_name }}</dd>
+
+    <dt>Date</dt>
+    <dd>
+      {{ data['start_date']|dateformat('short') }}
+      -
+      {{ data['end_date']|dateformat('short') }}
+    </dd>
+
+    <dt>Warehouses</dt>
+    <dd>
+      {% for warehouse in warehouses %}
+        {{ warehouse.name }}
+      {% endfor %}
+    </dd>
+  </dl>
+</div>
+{% endblock report_header %}
+
+{% block report_body %}
+  {% set product = record['product'] %}
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <td>
+          <span>{{ summary[product]['opening_stock'] }}</span><br/>
+          <span>Opening Stock</span>
+        </td>
+        {% if product.purchasable %}
+        <td>
+          <span>{{ summary[product]['purchased'] }}</span><br/>
+          <span>Purchased</span>
+        </td>
+        {% endif %}
+        {% if summary[product]['produced'] %}
+        <td>
+          <span>{{ summary[product]['produced'] }}</span><br/>
+          <span>Produced</span>
+        </td>
+        {% endif %}
+        {% if product.salable %}
+        <td>
+          <span>{{ summary[product]['customer'] }}</span><br/>
+          <span>Sold</span>
+        </td>
+        {% endif %}
+        {% if summary[product]['consumed'] %}
+        <td>
+          <span>{{ summary[product]['consumed'] }}</span><br/>
+          <span>Consumed</span>
+        </td>
+        {% endif %}
+        {% if summary[product]['lost'] %}
+        <td>
+          <span>{{ summary[product]['lost'] }}</span><br/>
+          <span>Lost</span>
+        </td>
+        {% endif %}
+        <td>
+          <span>{{ summary[product]['closing_stock'] }}</span><br/>
+          <span>Closing Stock</span>
+        </td>
+      </tr>
+    </thead>
+  </table>
+
+  <!-- Purchases -->
+  {% if record['purchases'] %}
+  <h3>Purchases</h3>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Supplier</th>
+        <th>PO #</th>
+        <th>Supplier Shipment</th>
+        <th>Quantity</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for move in record['purchases'] %}
+      <tr>
+        <td>{{ move.effective_date|dateformat }}</td>
+        <td>{{ move.origin and move.origin.purchase and move.origin.party.rec_name }}</td>
+        <td>{{ move.origin and move.origin.purchase and move.origin.purchase.reference }}</td>
+        <td>{{ move.shipment and move.shipment.code }}</td>
+        <td>{{ move.quantity }}{{ move.uom.symbol }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  <!-- END:Purchases -->
+
+  <!-- Production -->
+  {% if record['productions'] %}
+  <h3>Productions</h3>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>PO #</th>
+        <th>Location</th>
+        <th>Quantity</th>
+        <th>Operator</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for move in record['productions'] %}
+      <tr>
+        {% set production = move.production_input or move.production_output %}
+        <td>{{ move.effective_date|dateformat }}</td>
+        <td>{{ production.code}}</td>
+        <td>{{ production.location and production.location.rec_name }}</td>
+        <td>
+          {% if move.production_input %}-{% else %}+{% endif %}
+          {{ move.quantity }}{{ move.uom.symbol }}
+        </td>
+        <td>{{ move.operator and move.operator.rec_name }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  <!-- END:Productions -->
+
+
+  <!-- Customers -->
+  {% if record['customers'] %}
+  <h3>Sold</h3>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Customer</th>
+        <th>Order #</th>
+        <th>Shipment #</th>
+        <th>Quantity</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for move in record['customers'] %}
+      <tr>
+        <td>{{ move.effective_date|dateformat }}</td>
+        <td>{{ move.origin and move.origin.sale and move.origin.sale.party.rec_name }}</td>
+        <td>{{ move.origin and move.origin.sale and move.origin.sale.reference }}</td>
+        <td>{{ move.shipment and move.shipment.code }}</td>
+        <td>
+          {{ move.quantity }}{{ move.uom.symbol }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  <!-- END:Customers -->
+
+  <!-- Lost and Found -->
+  {% if record['lost_and_founds'] %}
+  <h3>Sold</h3>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Inventory Record</th>
+        <th>Quantity</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for move in record['lost_and_founds'] %}
+      <tr>
+        <td>{{ move.effective_date|dateformat }}</td>
+        <td>
+          {% if move.to_location.type == 'lost_found' %}-{% endif %}
+          {{ move.quantity }}{{ move.uom.symbol }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+  <!-- END:Customers -->
+
+{% endblock report_body %}

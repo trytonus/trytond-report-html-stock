@@ -15,7 +15,7 @@ class ShipmentOut:
 
     sales = fields.Function(
         fields.One2Many('sale.sale', None, 'Sales'),
-        'get_sales'
+        getter='get_sales', searcher='search_sales'
     )
 
     def get_sales(self, name=None):
@@ -24,6 +24,10 @@ class ShipmentOut:
         """
         sales = set([m.sale.id for m in self.moves if m.sale])
         return list(sales)
+
+    @classmethod
+    def search_sales(cls, name, clause):
+        return [('moves.sale',) + tuple(clause[1:])]
 
     def _get_inventory_move(self, move):
         """

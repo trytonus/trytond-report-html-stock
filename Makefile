@@ -2,7 +2,7 @@ test: test-sqlite test-postgres test-flake8
 
 test-sqlite: install-dependencies install-wkhtmltopdf
 	coverage run setup.py test
-	coverage report -m --fail-under 100
+	coverage report -m --fail-under 75
 
 test-postgres: install-dependencies install-wkhtmltopdf
 	python setup.py test_on_postgres

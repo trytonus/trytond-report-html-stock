@@ -57,7 +57,6 @@
     {% for record in records %}
       {# loop will not be available in the context of scoped block #}
       {% set first = loop.first %}
-
       {% block main scoped %}
       <div class="container-fluid {% if not first %}page-break{% endif %}">
         <div class="row">
