@@ -61,9 +61,9 @@ class BaseTestCase(unittest.TestCase):
         account_create_chart = POOL.get(
             'account.create_chart', type="wizard")
 
-        _, account_template = AccountTemplate.search(
+        account_template = AccountTemplate.search(
             [('parent', '=', None)]
-        )
+        )[0]
 
         session_id, _, _ = account_create_chart.create()
         create_chart = account_create_chart(session_id)
@@ -154,6 +154,8 @@ class BaseTestCase(unittest.TestCase):
             'code': 'CA',
             'type': 'state',
         }])
+
+        self._create_coa_minimal(self.company)
 
         self.party, = self.Party.create([{
             'name': 'Bruce Wayne',
