@@ -95,5 +95,10 @@
             <field name="report">report_html_stock/reports/product_ledger.html</field>
             <field name="extension">html</field>
         </record>
+        <!-- Internal Shipment -->
+        <record model="ir.action.report" id="stock.report_shipment_internal">
+            <field name="report_name">report.internal_shipment</field>
+            <field name="report">report_html_stock/reports/internal_shipment.html</field>
+        </record>
     </data>
 </tryton>
