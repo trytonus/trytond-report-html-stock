@@ -184,7 +184,10 @@ class ProductLedgerStartView(ModelView):
     __name__ = 'product.product.ledger.start'
 
     products = fields.One2Many(
-        'product.product', None, 'Products', required=True
+        'product.product', None, 'Products', required=True,
+        domain=[
+            ('type', '=', 'goods')
+        ], add_remove=[('type', '=', 'goods')]
     )
     warehouses = fields.One2Many(
         'stock.location', None, 'Warehouses',

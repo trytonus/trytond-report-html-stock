@@ -169,7 +169,7 @@
 
   <!-- Lost and Found -->
   {% if record['lost_and_founds'] %}
-  <h3>Sold</h3>
+  <h3>Lost And Found</h3>
   <table class="table table-bordered">
     <thead>
       <tr>
@@ -186,11 +186,14 @@
           {% if move.to_location.type == 'lost_found' %}-{% endif %}
           {{ move.quantity }}{{ move.uom.symbol }}
         </td>
+        <td>
+          {{ move.quantity }}{{ move.uom.symbol }}
+        </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
   {% endif %}
-  <!-- END:Customers -->
+  <!-- END:Lost and Founds -->
 
 {% endblock report_body %}
