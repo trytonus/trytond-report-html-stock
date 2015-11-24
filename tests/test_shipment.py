@@ -278,6 +278,23 @@ class TestShipment(BaseTestCase):
 
             with Transaction().set_context(company=self.company.id):
 
+                self.sale = self.Sale(
+                    party=self.party,
+                    invoice_address=self.party.addresses[0],
+                    shipment_address=self.party.addresses[0],
+                    lines=[],
+                )
+                self.sale.save()
+
+                sale_line, = self.SaleLine.create([{
+                    'type': 'line',
+                    'unit_price': 20,
+                    'quantity': 1,
+                    'description': "Test Sale",
+                    'sale': self.sale,
+                    'unit': self.uom,
+                }])
+
                 # 1. =====Purchases=====
                 purchase1, = StockMove.create([{
                     'from_location': supplier.id,
@@ -376,6 +393,7 @@ class TestShipment(BaseTestCase):
 
                 # 3. ======Customers========
                 customer1, = StockMove.create([{
+                    'origin': '%s, %d' % (sale_line.__name__, sale_line.id),
                     'from_location': warehouse.input_location.id,
                     'to_location': customer.id,
                     'quantity': 2,
@@ -388,6 +406,7 @@ class TestShipment(BaseTestCase):
                 StockMove.do([customer1])
 
                 customer2, = StockMove.create([{
+                    'origin': '%s, %d' % (sale_line.__name__, sale_line.id),
                     'from_location': warehouse.input_location.id,
                     'to_location': customer.id,
                     'quantity': 1,
@@ -400,6 +419,7 @@ class TestShipment(BaseTestCase):
                 StockMove.do([customer2])
 
                 customer3, = StockMove.create([{
+                    'origin': '%s, %d' % (sale_line.__name__, sale_line.id),
                     'from_location': warehouse.input_location.id,
                     'to_location': customer.id,
                     'quantity': 1,
@@ -411,6 +431,7 @@ class TestShipment(BaseTestCase):
                 StockMove.assign([customer3])
 
                 customer4, = StockMove.create([{
+                    'origin': '%s, %d' % (sale_line.__name__, sale_line.id),
                     'from_location': warehouse.input_location.id,
                     'to_location': customer.id,
                     'quantity': 2,
