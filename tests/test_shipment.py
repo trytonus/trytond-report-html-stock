@@ -8,6 +8,7 @@ import trytond.tests.test_tryton
 from trytond.tests.test_tryton import POOL, DB_NAME, USER, CONTEXT
 from trytond.transaction import Transaction
 from trytond.pool import Pool
+from trytond.exceptions import UserWarning
 
 from test_base import BaseTestCase
 
@@ -384,8 +385,9 @@ class TestShipment(BaseTestCase):
                     'unit_price': 20,
                     'effective_date': today - relativedelta(days=10)
                 }])
-                StockMove.assign([customer1])
-                StockMove.do([customer1])
+                with self.assertRaises(UserWarning):
+                    StockMove.assign([customer1])
+                    StockMove.do([customer1])
 
                 customer2, = StockMove.create([{
                     'from_location': warehouse.input_location.id,
@@ -396,8 +398,9 @@ class TestShipment(BaseTestCase):
                     'unit_price': 20,
                     'effective_date': today - relativedelta(days=30)
                 }])
-                StockMove.assign([customer2])
-                StockMove.do([customer2])
+                with self.assertRaises(UserWarning):
+                    StockMove.assign([customer2])
+                    StockMove.do([customer2])
 
                 customer3, = StockMove.create([{
                     'from_location': warehouse.input_location.id,
@@ -408,7 +411,8 @@ class TestShipment(BaseTestCase):
                     'unit_price': 20,
                     'effective_date': today - relativedelta(days=5)
                 }])
-                StockMove.assign([customer3])
+                with self.assertRaises(UserWarning):
+                    StockMove.assign([customer3])
 
                 customer4, = StockMove.create([{
                     'from_location': warehouse.input_location.id,
@@ -419,8 +423,9 @@ class TestShipment(BaseTestCase):
                     'unit_price': 20,
                     'effective_date': today - relativedelta(days=5)
                 }])
-                StockMove.assign([customer4])
-                StockMove.do([customer4])
+                with self.assertRaises(UserWarning):
+                    StockMove.assign([customer4])
+                    StockMove.do([customer4])
 
                 # 4. =====Lost And Founds========
                 lost_found1, = StockMove.create([{
@@ -542,7 +547,7 @@ class TestShipment(BaseTestCase):
 
                 # Customer2 ( assigned ) and customer3 ( effective_date <
                 # start_date) are ignored
-                self.assertEqual(len(customers), 2)
+                self.assertEqual(len(customers), 0)
 
                 # lost_found2 ( assigned ) and lost_found3 ( effective_date <
                 # start_date) are ignored
@@ -568,10 +573,122 @@ class TestShipment(BaseTestCase):
                 self.assertEqual(result['produced'], 4)
                 self.assertEqual(result['consumed'], 4)
                 self.assertEqual(result['lost'], 4)
-                self.assertEqual(result['customer'], 4)
+                self.assertEqual(result['customer'], 0)
 
-                self.assertEqual(result['opening_stock'], 1)
-                self.assertEqual(result['closing_stock'], 5)
+                self.assertEqual(result['opening_stock'], 2)
+                self.assertEqual(result['closing_stock'], 10)
+
+    @unittest.skipIf(sys.platform == 'darwin', 'wkhtmltopdf repo on OSX')
+    def test_0110_test_consolidate_picking_list_report(self):
+        """
+        Test ConsolidatedPickingList
+        """
+        Report = POOL.get('report.consolidated_picking_list', type="report")
+        Date = POOL.get('ir.date')
+        ActionReport = POOL.get('ir.action.report')
+
+        with Transaction().start(DB_NAME, USER, context=CONTEXT):
+            self.setup_defaults()
+
+            with Transaction().set_context({'company': self.company.id}):
+                shipment, = self.ShipmentOut.create([{
+                    'planned_date': Date.today(),
+                    'effective_date': Date.today(),
+                    'customer': self.party.id,
+                    'warehouse': self.StockLocation.search([
+                        ('type', '=', 'warehouse')
+                    ])[0],
+                    'delivery_address': self.party.addresses[0],
+                }])
+                move1, = self.Move.create([{
+                    'shipment': ('stock.shipment.out', shipment.id),
+                    'product': self.product.id,
+                    'uom': self.uom.id,
+                    'quantity': 6,
+                    'from_location': shipment.warehouse.storage_location.id,
+                    'to_location': shipment.warehouse.output_location.id,
+                }])
+
+                # Change the report extension to PDF
+                action_report, = ActionReport.search([
+                    ('name', '=', 'Consolidated Picking List'),
+                    ('report_name', '=', 'report.consolidated_picking_list')
+                ])
+                action_report.extension = 'pdf'
+                action_report.save()
+
+                # Set Pool.test as False as we need the report to be generated
+                # as PDF
+                # This is specifically to cover the PDF coversion code
+                Pool.test = False
+
+                # Generate Consolidated List Report
+                val = Report.execute([shipment.id], {})
+
+                # Revert Pool.test back to True for other tests to run normally
+                Pool.test = True
+
+                self.assertTrue(val)
+                # Assert report type
+                self.assertEqual(val[0], 'pdf')
+                # Assert report name
+                self.assertEqual(val[3], 'Consolidated Picking List')
+
+    @unittest.skipIf(sys.platform == 'darwin', 'wkhtmltopdf repo on OSX')
+    def test_0110_test_delivery_note_report(self):
+        """
+        Test Deliver Note
+        """
+        Report = POOL.get('report.delivery_note', type="report")
+        Date = POOL.get('ir.date')
+        ActionReport = POOL.get('ir.action.report')
+
+        with Transaction().start(DB_NAME, USER, context=CONTEXT):
+            self.setup_defaults()
+
+            with Transaction().set_context({'company': self.company.id}):
+                shipment, = self.ShipmentOut.create([{
+                    'planned_date': Date.today(),
+                    'effective_date': Date.today(),
+                    'customer': self.party.id,
+                    'warehouse': self.StockLocation.search([
+                        ('type', '=', 'warehouse')
+                    ])[0],
+                    'delivery_address': self.party.addresses[0],
+                }])
+                move1, = self.Move.create([{
+                    'shipment': ('stock.shipment.out', shipment.id),
+                    'product': self.product.id,
+                    'uom': self.uom.id,
+                    'quantity': 6,
+                    'from_location': shipment.warehouse.storage_location.id,
+                    'to_location': shipment.warehouse.output_location.id,
+                }])
+
+                # Change the report extension to PDF
+                action_report, = ActionReport.search([
+                    ('name', '=', 'Delivery Note'),
+                    ('report_name', '=', 'report.delivery_note')
+                ])
+                action_report.extension = 'pdf'
+                action_report.save()
+
+                # Set Pool.test as False as we need the report to be generated
+                # as PDF
+                # This is specifically to cover the PDF coversion code
+                Pool.test = False
+
+                # Generate Delivery List Report
+                val = Report.execute([shipment.id], {})
+
+                # Revert Pool.test back to True for other tests to run normally
+                Pool.test = True
+
+                self.assertTrue(val)
+                # Assert report type
+                self.assertEqual(val[0], 'pdf')
+                # Assert report name
+                self.assertEqual(val[3], 'Delivery Note')
 
 
 def suite():
