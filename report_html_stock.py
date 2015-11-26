@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from itertools import groupby, imap, chain
 from dateutil.relativedelta import relativedelta
+from collections import defaultdict
 
 from trytond.pool import Pool, PoolMeta
 from trytond.model import fields, ModelView
@@ -12,7 +13,8 @@ from openlabs_report_webkit import ReportWebkit
 __all__ = [
     'PickingList', 'SupplierRestockingList', 'CustomerReturnRestockingList',
     'ConsolidatedPickingList', 'ProductLedgerStartView', 'ProductLedgerReport',
-    'ProductLedger'
+    'ProductLedger', 'ItemsWaitingShipmentReport', 'ItemsWaitingShipmentStart',
+    'ItemsWaitingShipmentReportWizard'
 ]
 __metaclass__ = PoolMeta
 
@@ -361,3 +363,117 @@ class ProductLedger(Wizard):
             'end_date': self.start.end_date,
         }
         return action, data
+
+
+class ItemsWaitingShipmentReport(ReportMixin):
+    """
+    Items Waiting Shipment Report
+    """
+    __name__ = 'report.items_waiting_shipment'
+
+    @classmethod
+    def get_warehouses(cls, data):
+        """
+        Return the warehouses for which the inventory should be considered
+        as could be used for fulfilling orders.
+        """
+        StockLocation = Pool().get('stock.location')
+
+        return StockLocation.search([
+            ('type', '=', 'warehouse'),
+        ])
+
+    @classmethod
+    def parse(cls, report, records, data, localcontext):
+        ShipmentOut = Pool().get('stock.shipment.out')
+        Date = Pool().get('ir.date')
+        Product = Pool().get('product.product')
+
+        domain = [('state', 'in', ['assigned', 'waiting'])]
+        shipments = ShipmentOut.search(domain)
+        moves_by_products = {}
+        records = []
+        product_quantities = defaultdict(int)
+
+        for shipment in shipments:
+            for move in shipment.inventory_moves:
+                moves_by_products.setdefault(
+                    move.product, []).append(move)
+
+        warehouses = cls.get_warehouses(data)
+        products = moves_by_products.keys()
+        with Transaction().set_context(
+            stock_skip_warehouse=True,
+            stock_date_end=Date.today(),
+            stock_assign=True,
+        ):
+            pbl = Product.products_by_location(
+                location_ids=map(int, warehouses),
+                product_ids=map(int, products),
+            )
+
+            for key, qty in pbl.iteritems():
+                _, product_id = key
+                product_quantities[product_id] += qty
+
+        record = {
+            'moves_by_products': moves_by_products,
+            'report_ext': report.extension,
+            'product_quantities': product_quantities,
+        }
+        localcontext.update(record)
+        return super(ItemsWaitingShipmentReport, cls).parse(
+            report, records, data, localcontext
+        )
+
+    @classmethod
+    def get_jinja_filters(cls):
+        Date = Pool().get('ir.date')
+        today = Date.today()
+        rv = super(ItemsWaitingShipmentReport, cls).get_jinja_filters()
+
+        planned_date_sort_fn = lambda moves: sorted(
+            moves, key=lambda m: m.planned_date or today
+        )
+
+        rv['sort_by_planned_date'] = planned_date_sort_fn
+        # TODO: This finds the oldest one by sorting through ARs. This
+        # should be replaced with a search by min and then injected to
+        # local context.
+        rv['oldest_date'] = lambda moves: planned_date_sort_fn(
+            moves
+        )[0].planned_date
+        rv['quantity_in_state'] = lambda moves, state: sum(
+            [m.quantity for m in moves if m.state == state]
+        )
+        return rv
+
+
+class ItemsWaitingShipmentStart(ModelView):
+    'Generate Items Waiting Shipments Report'
+    __name__ = 'report.items_waiting_shipment_wizard.start'
+
+
+class ItemsWaitingShipmentReportWizard(Wizard):
+    'Generate Items Waiting Shipments Report Wizard'
+    __name__ = 'report.items_waiting_shipment_wizard'
+
+    start = StateView(
+        'report.items_waiting_shipment_wizard.start',
+        'report_html_stock.items_waiting_shipments_start_view_form', [  # noqa
+            Button('Cancel', 'end', 'tryton-cancel'),
+            Button('Generate Report', 'generate', 'tryton-ok', default=True),
+        ]
+    )
+    generate = StateAction(
+        'report_html_stock.report_items_waiting_shipment'
+    )
+
+    def do_generate(self, action):  # noqa
+        """
+        Add data to report
+        """
+        return action, {}
+
+    def transition_generate(self):  # noqa
+        return 'end'

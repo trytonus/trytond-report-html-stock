@@ -706,6 +706,43 @@ class TestShipment(BaseTestCase):
                 # Assert report name
                 self.assertEqual(val[3], 'Delivery Note')
 
+    def test_0040_test_waiting_shipment_report(self):
+        """
+        Waiting Shipment Report
+        """
+        Date = POOL.get('ir.date')
+        ActionReport = POOL.get('ir.action.report')
+
+        with Transaction().start(DB_NAME, USER, context=CONTEXT):
+            self.setup_defaults()
+
+            with Transaction().set_context({'company': self.company.id}):
+                shipment, = self.ShipmentOut.create([{
+                    'planned_date': Date.today(),
+                    'effective_date': Date.today(),
+                    'customer': self.party.id,
+                    'warehouse': self.StockLocation.search([
+                        ('type', '=', 'warehouse')
+                    ])[0],
+                    'delivery_address': self.party.addresses[0],
+                    'code':'uday',
+                }])
+                move1, = self.Move.create([{
+                    'shipment': ('stock.shipment.out', shipment.id),
+                    'product': self.product.id,
+                    'uom': self.uom.id,
+                    'state': 'draft',
+                    'quantity': 6,
+                    'from_location': shipment.warehouse.storage_location.id,
+                    'to_location': shipment.warehouse.output_location.id,
+                }])
+
+                action_report, = ActionReport.search([
+                    ('name', '=', 'Items Waiting Shipment'),
+                    ('report_name', '=', 'report.items_waiting_shipment')
+                ])
+                action_report.save()
+
 
 def suite():
     "Define suite"

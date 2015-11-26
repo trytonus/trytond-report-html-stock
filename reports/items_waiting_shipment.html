@@ -1,0 +1,56 @@
+{% extends 'report_html_stock/reports/base.html' %}
+{% block body %}
+    {% block heading %}
+  <span class="h3 pull-right">Item Waiting Shipment</span>
+  <span style="float:left;" >Date :</span>
+  <span style="float:left;" >{{ datetime.datetime.today()|dateformat }}</span>
+    {% endblock %}
+{% for record, moves in moves_by_products.iteritems() %}
+{% set first = loop.first %}
+{% block main scoped %}
+{% block report_body scoped %}
+     {% set waiting = record %}
+    <table class="table">
+      <thead>
+        <th class="text-center">Product</th>
+        <th class="text-center">SKU</th>
+        <th class="text-center">Oldest Date</th>
+        <th class="text-center">Available </th>
+        <th class="text-center">Assigned</th>
+	    <th class="text-center">Draft</th>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="text-center"><a href="{{ waiting.__url__ }}">{{ waiting.name }}</a></td>
+          <td class="text-center"><a href="{{ waiting.__url__ }}">{{ waiting.code or '-' }}</a></td>
+          <td class="text-center">{{ moves|oldest_date }}</td>
+          <td class="text-center">{{ formatLang(product_quantities[waiting.id], user.lang, waiting.default_uom.digits or 2) }}</td>
+          <td class="text-center">{{ formatLang(moves|quantity_in_state('assigned'), user.lang, waiting.default_uom.digits or 2) }}</td>
+	      <td class="text-center">{{ formatLang(waiting.moves|quantity_in_state('draft'), user.lang, waiting.default_uom.digits or 2) }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="table">
+      <tbody>
+        <tr>
+          <th class="text-center">Shipment</th>
+          <th class="text-center">Customer</th>
+          <th class="text-center">Planned Date</th>
+          <th class="text-center">Quantity</th>
+	      <th class="text-center">State</th>
+        </tr>
+	{% for move in moves %}		
+        <tr>
+          <td class="text-center"><a href="{{ move.shipment.__url__ }}">{{ move.shipment.code or '-' }}</a></td>
+          <td class="text-center"><a href="{{ move.shipment.__url__ }}">{{ move.shipment.customer.name }}</a></td>
+          <td class="text-center">{{ move.planned_date }}</td>
+          <td class="text-center">{{ formatLang(move.quantity, move.shipment.customer.lang, move.unit_digits) }}</td>
+	      <td class="text-center">{{ move.state }}</td>
+        </tr>
+	{% endfor %}
+      </tbody>
+    </table>
+{% endblock report_body %}
+{% endblock main %}
+{% endfor %}
+{% endblock body %}
