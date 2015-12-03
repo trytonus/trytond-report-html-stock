@@ -95,5 +95,27 @@
             <field name="report">report_html_stock/reports/product_ledger.html</field>
             <field name="extension">html</field>
         </record>
+	
+	<!-- Items waiting shipment -->
+	<record model="ir.action.report" id="report_items_waiting_shipment">
+            <field name="name">Items Waiting Shipment</field>
+            <field name="model"></field>
+            <field name="report_name">report.items_waiting_shipment</field>
+            <field name="report">report_html_stock/reports/items_waiting_shipment.html</field>
+            <field name="extension">pdf</field>
+        </record>
+        <record model="ir.ui.view" id="items_waiting_shipments_start_view_form">
+            <field name="model">report.items_waiting_shipment_wizard.start</field>
+            <field name="type">form</field>
+            <field name="name">items_waiting_shipments_start_form</field>
+        </record>
+        <record model="ir.action.wizard" id="items_waiting_shipment_wizard">
+            <field name="name">Items Waiting Shipment</field>
+            <field name="wiz_name">report.items_waiting_shipment_wizard</field>
+        </record>
+        <menuitem parent="stock.menu_stock"
+            action="items_waiting_shipment_wizard"
+            id="menu_items_waiting_shipment_report" icon="tryton-spreadsheet"
+            sequence="100"/>
     </data>
 </tryton>
