@@ -12,7 +12,7 @@ from openlabs_report_webkit import ReportWebkit
 __all__ = [
     'PickingList', 'SupplierRestockingList', 'CustomerReturnRestockingList',
     'ConsolidatedPickingList', 'ProductLedgerStartView', 'ProductLedgerReport',
-    'ProductLedger'
+    'ProductLedger', 'InternalShipmentReport'
 ]
 __metaclass__ = PoolMeta
 
@@ -177,6 +177,10 @@ class CustomerReturnRestockingList(ReportMixin):
 class DeliveryNote(ReportMixin):
     "Delivery Note"
     __name__ = 'report.delivery_note'
+
+
+class InternalShipmentReport(ReportMixin):
+    __name__ = 'report.internal_shipment'
 
 
 class ProductLedgerStartView(ModelView):
