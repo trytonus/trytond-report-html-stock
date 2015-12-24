@@ -12,7 +12,7 @@ from openlabs_report_webkit import ReportWebkit
 __all__ = [
     'PickingList', 'SupplierRestockingList', 'CustomerReturnRestockingList',
     'ConsolidatedPickingList', 'ProductLedgerStartView', 'ProductLedgerReport',
-    'ProductLedger'
+    'ProductLedger', 'InternalShipmentReport'
 ]
 __metaclass__ = PoolMeta
 
@@ -32,7 +32,7 @@ class ReportMixin(ReportWebkit):
         company = ''
         if Transaction().context.get('company'):
             company = Company(Transaction().context.get('company')).party.name
-        options = {
+        opts = {
             'margin-bottom': '0.50in',
             'margin-left': '0.50in',
             'margin-right': '0.50in',
@@ -43,8 +43,10 @@ class ReportMixin(ReportWebkit):
             'footer-right': '[page]/[toPage]',
             'footer-spacing': '5',
         }
+        if options:
+            opts.update(options)
         return super(ReportMixin, cls).wkhtml_to_pdf(
-            data, options=options
+            data, options=opts
         )
 
     @classmethod
@@ -179,12 +181,19 @@ class DeliveryNote(ReportMixin):
     __name__ = 'report.delivery_note'
 
 
+class InternalShipmentReport(ReportMixin):
+    __name__ = 'report.internal_shipment'
+
+
 class ProductLedgerStartView(ModelView):
     'Product Ledger Start'
     __name__ = 'product.product.ledger.start'
 
     products = fields.One2Many(
-        'product.product', None, 'Products', required=True
+        'product.product', None, 'Products', required=True,
+        domain=[
+            ('type', '=', 'goods')
+        ], add_remove=[('type', '=', 'goods')]
     )
     warehouses = fields.One2Many(
         'stock.location', None, 'Warehouses',

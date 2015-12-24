@@ -278,6 +278,23 @@ class TestShipment(BaseTestCase):
 
             with Transaction().set_context(company=self.company.id):
 
+                self.sale = self.Sale(
+                    party=self.party,
+                    invoice_address=self.party.addresses[0],
+                    shipment_address=self.party.addresses[0],
+                    lines=[],
+                )
+                self.sale.save()
+
+                sale_line, = self.SaleLine.create([{
+                    'type': 'line',
+                    'unit_price': 20,
+                    'quantity': 1,
+                    'description': "Test Sale",
+                    'sale': self.sale,
+                    'unit': self.uom,
+                }])
+
                 # 1. =====Purchases=====
                 purchase1, = StockMove.create([{
                     'from_location': supplier.id,
@@ -376,6 +393,7 @@ class TestShipment(BaseTestCase):
 
                 # 3. ======Customers========
                 customer1, = StockMove.create([{
+                    'origin': '%s, %d' % (sale_line.__name__, sale_line.id),
                     'from_location': warehouse.input_location.id,
                     'to_location': customer.id,
                     'quantity': 2,
@@ -388,6 +406,7 @@ class TestShipment(BaseTestCase):
                 StockMove.do([customer1])
 
                 customer2, = StockMove.create([{
+                    'origin': '%s, %d' % (sale_line.__name__, sale_line.id),
                     'from_location': warehouse.input_location.id,
                     'to_location': customer.id,
                     'quantity': 1,
@@ -400,6 +419,7 @@ class TestShipment(BaseTestCase):
                 StockMove.do([customer2])
 
                 customer3, = StockMove.create([{
+                    'origin': '%s, %d' % (sale_line.__name__, sale_line.id),
                     'from_location': warehouse.input_location.id,
                     'to_location': customer.id,
                     'quantity': 1,
@@ -411,6 +431,7 @@ class TestShipment(BaseTestCase):
                 StockMove.assign([customer3])
 
                 customer4, = StockMove.create([{
+                    'origin': '%s, %d' % (sale_line.__name__, sale_line.id),
                     'from_location': warehouse.input_location.id,
                     'to_location': customer.id,
                     'quantity': 2,
@@ -572,6 +593,118 @@ class TestShipment(BaseTestCase):
 
                 self.assertEqual(result['opening_stock'], 1)
                 self.assertEqual(result['closing_stock'], 5)
+
+    @unittest.skipIf(sys.platform == 'darwin', 'wkhtmltopdf repo on OSX')
+    def test_0110_test_consolidate_picking_list_report(self):
+        """
+        Test ConsolidatedPickingList
+        """
+        Report = POOL.get('report.consolidated_picking_list', type="report")
+        Date = POOL.get('ir.date')
+        ActionReport = POOL.get('ir.action.report')
+
+        with Transaction().start(DB_NAME, USER, context=CONTEXT):
+            self.setup_defaults()
+
+            with Transaction().set_context({'company': self.company.id}):
+                shipment, = self.ShipmentOut.create([{
+                    'planned_date': Date.today(),
+                    'effective_date': Date.today(),
+                    'customer': self.party.id,
+                    'warehouse': self.StockLocation.search([
+                        ('type', '=', 'warehouse')
+                    ])[0],
+                    'delivery_address': self.party.addresses[0],
+                }])
+                move1, = self.Move.create([{
+                    'shipment': ('stock.shipment.out', shipment.id),
+                    'product': self.product.id,
+                    'uom': self.uom.id,
+                    'quantity': 6,
+                    'from_location': shipment.warehouse.storage_location.id,
+                    'to_location': shipment.warehouse.output_location.id,
+                }])
+
+                # Change the report extension to PDF
+                action_report, = ActionReport.search([
+                    ('name', '=', 'Consolidated Picking List'),
+                    ('report_name', '=', 'report.consolidated_picking_list')
+                ])
+                action_report.extension = 'pdf'
+                action_report.save()
+
+                # Set Pool.test as False as we need the report to be generated
+                # as PDF
+                # This is specifically to cover the PDF coversion code
+                Pool.test = False
+
+                # Generate Consolidated List Report
+                val = Report.execute([shipment.id], {})
+
+                # Revert Pool.test back to True for other tests to run normally
+                Pool.test = True
+
+                self.assertTrue(val)
+                # Assert report type
+                self.assertEqual(val[0], 'pdf')
+                # Assert report name
+                self.assertEqual(val[3], 'Consolidated Picking List')
+
+    @unittest.skipIf(sys.platform == 'darwin', 'wkhtmltopdf repo on OSX')
+    def test_0110_test_delivery_note_report(self):
+        """
+        Test Deliver Note
+        """
+        Report = POOL.get('report.delivery_note', type="report")
+        Date = POOL.get('ir.date')
+        ActionReport = POOL.get('ir.action.report')
+
+        with Transaction().start(DB_NAME, USER, context=CONTEXT):
+            self.setup_defaults()
+
+            with Transaction().set_context({'company': self.company.id}):
+                shipment, = self.ShipmentOut.create([{
+                    'planned_date': Date.today(),
+                    'effective_date': Date.today(),
+                    'customer': self.party.id,
+                    'warehouse': self.StockLocation.search([
+                        ('type', '=', 'warehouse')
+                    ])[0],
+                    'delivery_address': self.party.addresses[0],
+                }])
+                move1, = self.Move.create([{
+                    'shipment': ('stock.shipment.out', shipment.id),
+                    'product': self.product.id,
+                    'uom': self.uom.id,
+                    'quantity': 6,
+                    'from_location': shipment.warehouse.storage_location.id,
+                    'to_location': shipment.warehouse.output_location.id,
+                }])
+
+                # Change the report extension to PDF
+                action_report, = ActionReport.search([
+                    ('name', '=', 'Delivery Note'),
+                    ('report_name', '=', 'report.delivery_note')
+                ])
+                action_report.extension = 'pdf'
+                action_report.save()
+
+                # Set Pool.test as False as we need the report to be generated
+                # as PDF
+                # This is specifically to cover the PDF coversion code
+                Pool.test = False
+
+                # Generate Delivery List Report
+                val = Report.execute([shipment.id], {})
+
+                # Revert Pool.test back to True for other tests to run normally
+                Pool.test = True
+
+                self.assertTrue(val)
+                # Assert report type
+                self.assertEqual(val[0], 'pdf')
+                # Assert report name
+                self.assertEqual(val[3], 'Delivery Note')
 
 
 def suite():
