@@ -32,7 +32,7 @@ class ReportMixin(ReportWebkit):
         company = ''
         if Transaction().context.get('company'):
             company = Company(Transaction().context.get('company')).party.name
-        options = {
+        opts = {
             'margin-bottom': '0.50in',
             'margin-left': '0.50in',
             'margin-right': '0.50in',
@@ -43,8 +43,10 @@ class ReportMixin(ReportWebkit):
             'footer-right': '[page]/[toPage]',
             'footer-spacing': '5',
         }
+        if options:
+            opts.update(options)
         return super(ReportMixin, cls).wkhtml_to_pdf(
-            data, options=options
+            data, options=opts
         )
 
     @classmethod
