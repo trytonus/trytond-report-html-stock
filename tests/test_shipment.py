@@ -243,7 +243,7 @@ class TestShipment(BaseTestCase):
 
                 self.assert_(val)
                 # Assert report type
-                self.assertEqual(val[0], 'html')
+                self.assertEqual(val[0], 'pdf')
                 # Assert report name
                 self.assertEqual(val[3], 'Product Ledger')
 
