@@ -9,6 +9,7 @@
             <field name="model">stock.shipment.out</field>
             <field name="report_name">report.picking_list</field>
             <field name="report">report_html_stock/reports/picking_list.html</field>
+            <field name="extension">pdf</field>
         </record>
         <record model="ir.action.keyword" id="report_picking_list_keyword">
             <field name="keyword">form_print</field>
@@ -20,6 +21,7 @@
             <field name="model">stock.shipment.out</field>
             <field name="report_name">report.consolidated_picking_list</field>
             <field name="report">report_html_stock/reports/consolidated_picking_list.html</field>
+            <field name="extension">pdf</field>
         </record>
         <record model="ir.action.keyword" id="report_consolidated_picking_list_keyword">
             <field name="keyword">form_print</field>
@@ -37,6 +39,7 @@
             <field name="model">stock.shipment.in</field>
             <field name="report_name">report.supplier_restocking_list</field>
             <field name="report">report_html_stock/reports/supplier_restocking_list.html</field>
+            <field name="extension">pdf</field>
         </record>
         <record model="ir.action.keyword"  id="report_shipment_in_restocking_list_keyword">
             <field name="keyword">form_print</field>
@@ -49,6 +52,7 @@
             <field name="model">stock.shipment.out.return</field>
             <field name="report_name">report.customer_return_restocking_list</field>
             <field name="report">report_html_stock/reports/customer_restocking_list.html</field>
+            <field name="extension">pdf</field>
         </record>
         <record model="ir.action.keyword" id="report_shipment_out_return_restocking_list_keyword">
             <field name="keyword">form_print</field>
@@ -93,12 +97,13 @@
             <field name="model">product.product</field>
             <field name="report_name">report.product_ledger</field>
             <field name="report">report_html_stock/reports/product_ledger.html</field>
-            <field name="extension">html</field>
+            <field name="extension">pdf</field>
         </record>
         <!-- Internal Shipment -->
         <record model="ir.action.report" id="stock.report_shipment_internal">
             <field name="report_name">report.internal_shipment</field>
             <field name="report">report_html_stock/reports/internal_shipment.html</field>
+            <field name="extension">pdf</field>
         </record>
     </data>
 </tryton>
