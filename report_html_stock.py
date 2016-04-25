@@ -42,6 +42,7 @@ class ReportMixin(ReportWebkit):
             'footer-line': '',
             'footer-right': '[page]/[toPage]',
             'footer-spacing': '5',
+            "page-size": "Letter"
         }
         if options:
             opts.update(options)
