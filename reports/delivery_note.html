@@ -52,7 +52,7 @@
         <tr>
           <td class="text-center">{{ shipment.origins or '' }}{{ ', ' if (shipment.origins and shipment.reference) else '' }}{{ shipment.reference or '' }}</td>
           <td class="text-center">{{ shipment.customer.code }}</td>
-          <td class="text-center">{{ shipment.carrier and shipment.carrier.party.name or '-' }}</td>
+          <td class="text-center">{{ shipment.carrier and shipment.carrier.rec_name or '-' }}</td>
           <td class="text-center">{{ shipment.tracking_number and shipment.tracking_number.rec_name or '-' }}</td>
           <td class="text-center">
             {% if shipment.package_weight %}
