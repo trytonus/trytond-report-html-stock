@@ -103,6 +103,10 @@ class ConsolidatedPickingList(ReportMixin):
         return (move.from_location, move.product)
 
     @classmethod
+    def get_moves(cls, shipment):
+        return shipment.inventory_moves
+
+    @classmethod
     def get_product_repr_from(cls, key):
         """
         Returns the product representation from the key
@@ -128,7 +132,7 @@ class ConsolidatedPickingList(ReportMixin):
                 # and then group it
                 list(sorted(
                     # Chain all inventory moves from all shipments
-                    chain(*imap(lambda s: s.inventory_moves, records)),
+                    chain(*imap(lambda s: cls.get_moves(s), records)),
                     key=cls.group_key
                 )), cls.group_key):
             moves = list(grouper)
