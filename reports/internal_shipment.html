@@ -10,11 +10,7 @@
   <table class="table no-border">
     <tr>
       <td align="right"><b>Shipment #</b></td>
-      <td>{{ shipment.code }}</td>
-    </tr>
-    <tr>
-      <td align="right"><b>Date</b></td>
-      <td>{{ shipment.effective_date or datetime.datetime.today()|dateformat }}</td>
+      <td class="barcode">{{ shipment.code }}</td>
     </tr>
   </table>
 {% endblock report_header %}
@@ -26,6 +22,7 @@
         <th class="text-center">From Location</th>
         <th class="text-center">To Location</th>
         <th class="text-center">Planned Date</th>
+        <th class="text-center">Effective Date</th>
         <th class="text-center">State</th>
       </thead>
       <tbody>
@@ -33,19 +30,21 @@
           <td class="text-center">{{ shipment.reference or '' }}</td>
           <td class="text-center">{{ shipment.from_location.rec_name }}</td>
           <td class="text-center">{{ shipment.to_location.rec_name }}</td>
-          <td class="text-center">{{ shipment.planned_date or ''}}</td>
-          <td class="text-center">{{ shipment.state }}</td>
+          <td class="text-center">{{ shipment.planned_date and shipment.planned_date|dateformat or '-Not set-' }}</td>
+          <td class="text-center">{{ shipment.effective_date and shipment.effective_date|dateformat or '-NA-' }}</td>
+          <td class="text-center">{{ shipment.state|capitalize }}</td>
         </tr>
       </tbody>
     </table>
-    
+
     {% for move in shipment.moves %}
     <table class="table">
       <thead>
         <th class="text-center">From Location</th>
         <th class="text-center">To Location</th>
         <th class="text-center">Product</th>
-	 <th class="text-center">Quantity</th>
+        <th class="text-center">Quantity</th>
+        <th class="text-center">State</th>
       </thead>
       <tbody>
         <tr>
@@ -53,6 +52,7 @@
           <td class="text-center">{{ move.to_location.rec_name or ''}}</td>
           <td class="text-center">{{ move.product.rec_name or ''}}</td>
           <td class="text-center">{{ formatLang(move.quantity, user.lang, digits=move.unit_digits) }} {% if move.uom.symbol != 'u' %}{{ move.uom.symbol }}{% endif %}</td>
+          <th class="text-center">{{ move.state|capitalize }}</th>
         </tr>
         {% endfor %}
       </tbody>
