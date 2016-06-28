@@ -39,7 +39,6 @@
       </tbody>
     </table>
     
-    {% for move in shipment.moves %}
     <table class="table">
       <thead>
         <th class="text-center">From Location</th>
@@ -48,6 +47,7 @@
 	 <th class="text-center">Quantity</th>
       </thead>
       <tbody>
+      	{% for move in shipment.moves %}
         <tr>
           <td class="text-center">{{ move.from_location.rec_name or '' }}</td>
           <td class="text-center">{{ move.to_location.rec_name or ''}}</td>
