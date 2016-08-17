@@ -1,23 +1,11 @@
 # -*- coding: utf-8 -*-
-import sys
-import os
 import unittest
 from decimal import Decimal
 
 import trytond.tests.test_tryton
-from trytond.tests.test_tryton import POOL, USER, CONTEXT
+from trytond.tests.test_tryton import POOL, USER
 from trytond.transaction import Transaction
 from trytond.pyson import Eval
-
-DIR = os.path.abspath(os.path.normpath(os.path.join(
-    __file__, '..', '..', '..', '..', '..', 'trytond'
-)))
-if os.path.isdir(DIR):
-    sys.path.insert(0, os.path.dirname(DIR))
-
-ROOT_JSON_FOLDER = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), 'json_data'
-)
 
 
 class BaseTestCase(unittest.TestCase):
@@ -63,9 +51,10 @@ class BaseTestCase(unittest.TestCase):
         account_create_chart = POOL.get(
             'account.create_chart', type="wizard")
 
-        account_template = AccountTemplate.search(
-            [('parent', '=', None)]
-        )[0]
+        account_template, = AccountTemplate.search([
+            ('parent', '=', None),
+            ('name', '=', 'Minimal Account Chart')
+        ])
 
         session_id, _, _ = account_create_chart.create()
         create_chart = account_create_chart(session_id)
@@ -144,7 +133,9 @@ class BaseTestCase(unittest.TestCase):
             'main_company': self.company,
         })
 
-        CONTEXT.update(self.User.get_preferences(context_only=True))
+        Transaction().context.update(
+            self.User.get_preferences(context_only=True)
+        )
 
         self.country, = self.Country.create([{
             'name': 'United States of America',
@@ -189,7 +180,7 @@ class BaseTestCase(unittest.TestCase):
         self.product_template, = self.ProductTemplate.create([{
             'name': 'Bat Mobile',
             'type': 'goods',
-            'category': self.product_category.id,
+            'categories': [('add', [self.product_category.id])],
             'list_price': Decimal('20000'),
             'cost_price': Decimal('15000'),
             'default_uom': self.uom.id,

@@ -35,11 +35,11 @@
         <thead>
           <tr class="warning">
             <th colspan="4">
-              &#9744; <b>{{ quantity }}</b> x 
+              &#9744; <b>{{ quantity }}</b> x
               {{ get_product_repr_from(key) }}
             </th>
             <th colspan="3">
-              <span class="text-muted">Location:</span> 
+              <span class="text-muted">Location:</span>
               {{ get_location_repr_from(key) }}
             </th>
           </tr>
@@ -57,7 +57,7 @@
           {% for move in moves %}
           <tr>
             <td>{{ loop.index }}</td>
-            <td class="text-right">{{ formatLang(move.quantity, move.shipment.customer.lang, digits=move.unit_digits) }} {% if move.uom.symbol != 'u' %}{{ move.uom.symbol }}{% endif %}</td>
+            <td class="text-right">{{ format_number(move.quantity, move.shipment.customer.lang, digits=move.unit_digits) }} {% if move.uom.symbol != 'u' %}{{ move.uom.symbol }}{% endif %}</td>
             <td class="text-right">{{ move.shipment.code }}</td>
             <td>{{ move.shipment.planned_date and move.shipment.planned_date|dateformat or '-' }}</td>
             <td>{{ move.sale_order and move.sale_order.reference or '-' }}</td>

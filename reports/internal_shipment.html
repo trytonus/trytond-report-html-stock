@@ -51,7 +51,7 @@
           <td class="text-center">{{ move.from_location.rec_name or '' }}</td>
           <td class="text-center">{{ move.to_location.rec_name or ''}}</td>
           <td class="text-center">{{ move.product.rec_name or ''}}</td>
-          <td class="text-center">{{ formatLang(move.quantity, user.lang, digits=move.unit_digits) }} {% if move.uom.symbol != 'u' %}{{ move.uom.symbol }}{% endif %}</td>
+          <td class="text-center">{{ format_number(move.quantity, user.lang, digits=move.unit_digits) }} {% if move.uom.symbol != 'u' %}{{ move.uom.symbol }}{% endif %}</td>
           <th class="text-center">{{ move.state|capitalize }}</th>
         </tr>
         {% endfor %}

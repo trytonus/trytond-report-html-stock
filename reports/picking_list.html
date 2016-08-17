@@ -52,7 +52,7 @@
         <td class="text-center">{{ shipment.carrier and shipment.carrier.party.name or '-' }}</td>
         <td class="text-center">
           {% if shipment.weight %}
-            {{ formatLang(shipment.weight, shipment.customer.lang, digits=2) }} {{ shipment.weight_uom.symbol }}
+            {{ format_number(shipment.weight, shipment.customer.lang, digits=2) }} {{ shipment.weight_uom.symbol }}
           {% else %}
             {{ '-' }}
           {% endif %}
@@ -76,7 +76,7 @@
         <td>{{ loop.index }}</i></td>
         <td class="text-center">
           {% if move.uom.symbol == 'u' and move.quantity > 1 %}<b>{% endif %}
-          {{ formatLang(move.quantity, shipment.customer.lang, digits=move.unit_digits) }} {% if move.uom.symbol != 'u' %}{{ move.uom.symbol }}{% endif %}
+          {{ format_number(move.quantity, shipment.customer.lang, digits=move.unit_digits) }} {% if move.uom.symbol != 'u' %}{{ move.uom.symbol }}{% endif %}
           {% if move.uom.symbol == 'u' and move.quantity > 1 %}</b>{% endif %}
         </td>
         <td>{{ move.product.code }} - {{ move.product.name }}</td>

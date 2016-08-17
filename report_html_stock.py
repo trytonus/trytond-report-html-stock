@@ -78,14 +78,13 @@ class PickingList(ReportMixin):
         return sorted(shipment.inventory_moves, key=sort_key)
 
     @classmethod
-    def parse(cls, report, records, data, localcontext):
-        localcontext['sort_inventory_moves'] = cls.sort_inventory_moves
-        localcontext['sort_key'] = lambda move: (
+    def get_context(cls, records, data):
+        report_context = super(PickingList, cls).get_context(records, data)
+        report_context['sort_inventory_moves'] = cls.sort_inventory_moves
+        report_context['sort_key'] = lambda move: (
             move.from_location.rec_name, move.product.name
         )
-        return super(PickingList, cls).parse(
-            report, records, data, localcontext
-        )
+        return report_context
 
 
 class ConsolidatedPickingList(ReportMixin):
@@ -121,12 +120,15 @@ class ConsolidatedPickingList(ReportMixin):
         return key[0].rec_name
 
     @classmethod
-    def parse(cls, report, records, data, localcontext):
+    def get_context(cls, records, data):
         """
         The default implementation groups by product
         and sorts by from_location.
         """
-        localcontext['grouped_moves'] = []
+        report_context = super(ConsolidatedPickingList, cls).get_context(
+            records, data
+        )
+        report_context['grouped_moves'] = []
         for key, grouper in groupby(
                 # Sort all the moves from all shipments
                 # and then group it
@@ -138,15 +140,13 @@ class ConsolidatedPickingList(ReportMixin):
             moves = list(grouper)
             # TODO: Sum totals everything, the UOM to base UOM conversion
             # is not done
-            localcontext['grouped_moves'].append(
+            report_context['grouped_moves'].append(
                 (key, moves, sum(map(lambda m: m.quantity, moves)))
             )
 
-        localcontext['get_product_repr_from'] = cls.get_product_repr_from
-        localcontext['get_location_repr_from'] = cls.get_location_repr_from
-        return super(ConsolidatedPickingList, cls).parse(
-            report, records, data, localcontext
-        )
+        report_context['get_product_repr_from'] = cls.get_product_repr_from
+        report_context['get_location_repr_from'] = cls.get_location_repr_from
+        return report_context
 
 
 class SupplierRestockingList(ReportMixin):
@@ -154,15 +154,14 @@ class SupplierRestockingList(ReportMixin):
     __name__ = 'report.supplier_restocking_list'
 
     @classmethod
-    def parse(cls, report, records, data, localcontext):
-
+    def get_context(cls, records, data):
+        report_context = super(SupplierRestockingList, cls).get_context(
+            records, data
+        )
         sorted_moves = cls.get_sorted_moves(records)
 
-        localcontext['moves'] = sorted_moves
-
-        return super(SupplierRestockingList, cls).parse(
-            report, records, data, localcontext
-        )
+        report_context['moves'] = sorted_moves
+        return report_context
 
 
 class CustomerReturnRestockingList(ReportMixin):
@@ -170,15 +169,14 @@ class CustomerReturnRestockingList(ReportMixin):
     __name__ = 'report.customer_return_restocking_list'
 
     @classmethod
-    def parse(cls, report, records, data, localcontext):
-
+    def get_context(cls, records, data):
+        report_context = super(CustomerReturnRestockingList, cls).get_context(
+            records, data
+        )
         sorted_moves = cls.get_sorted_moves(records)
 
-        localcontext['moves'] = sorted_moves
-
-        return super(CustomerReturnRestockingList, cls).parse(
-            report, records, data, localcontext
-        )
+        report_context['moves'] = sorted_moves
+        return report_context
 
 
 class DeliveryNote(ReportMixin):
@@ -319,10 +317,13 @@ class ProductLedgerReport(ReportMixin):
         return rv
 
     @classmethod
-    def parse(cls, report, objects, data, localcontext):
+    def get_context(cls, objects, data):
         Product = Pool().get('product.product')
         Locations = Pool().get('stock.location')
 
+        report_context = super(ProductLedgerReport, cls).get_context(
+            objects, data
+        )
         records = []
         summary = {}
         for product_id in data['products']:
@@ -338,11 +339,9 @@ class ProductLedgerReport(ReportMixin):
             records.append(record)
             summary[product] = cls.get_summary(record, data)
 
-        localcontext['summary'] = summary
-        localcontext['warehouses'] = Locations.browse(data['warehouses'])
-        return super(ProductLedgerReport, cls).parse(
-            report, records, data, localcontext
-        )
+        report_context['summary'] = summary
+        report_context['warehouses'] = Locations.browse(data['warehouses'])
+        return report_context
 
 
 class ProductLedger(Wizard):
