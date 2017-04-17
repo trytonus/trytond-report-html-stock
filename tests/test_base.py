@@ -149,6 +149,7 @@ class BaseTestCase(unittest.TestCase):
         }])
 
         self._create_coa_minimal(self.company)
+
         self._create_payment_term()
 
         self.party, = self.Party.create([{
